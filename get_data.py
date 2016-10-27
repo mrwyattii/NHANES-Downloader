@@ -100,7 +100,6 @@ def main():
     if args.multithread:
         parallelParseWebSite = functools.partial(parseWebSite,\
                 output=args.output)
-        print(os.cpu_count())
         pool = Pool(processes=os.cpu_count())
         pool.map(parallelParseWebSite, urls)
     else:
