@@ -1,0 +1,6 @@
+http://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx?Component=Demographics
+http://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx?Component=Dietary
+http://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx?Component=Examination
+http://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx?Component=Laboratory
+http://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx?Component=Questionnaire
+http://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx?Component=Non-Public
