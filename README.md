@@ -25,5 +25,5 @@ be used to invoke a multiprocess version of the script which utilizes the
 python `multiprocessing.pool` method.  Last, you can specify a different file
 containing URLs.  For additionaly documentation, try:
 ```
-$ ./get_data.pyp -h
+$ ./get_data.py -h
 ```
