@@ -21,10 +21,13 @@ beautifulsoup4`
 This is a simple python script which you can use to download the entire NHANES
 dataset from the CDC website.  The script will load the websites at the URLs
 provided in `NHANES_URLS.txt` and parse each page for links to .XPT files.  It
-will then download these files and store then in a local `./data/raw_data/`
-directory.  An additional script is provided which converts these .XPT files
-to .CSV files for easier use of the NHANES data.  This script will output to
-the files to `./data/csv_data/` by default.
+will then download these files and store them in a local `./data/raw_data/`
+directory.  On top of downloading the .XPT files, the NHANES website will be
+parsed for mapping between abbreviated column labels and more verbose column
+labels.  These files are stored along with the .XPT files in .JSON files.  An
+additional script is provided which converts these .XPT files to .CSV files for
+easier use of the NHANES data.  This script will output to the files to
+`./data/csv_data/` by default.
 
 # Usage
 Running the script is easy.  Just navigate to the directory of the script and
