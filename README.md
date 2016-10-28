@@ -5,6 +5,14 @@ Python script to download the entire NHANES dataset from the CDC website.
 * Python 3
 * BeautifulSoup
 
+The easiest way to ensure that these requirements are met is to install
+Anaconda 3.  You can download that from here:
+https://www.continuum.io/downloads
+
+If you already have python 3 installed, then BeautifulSoup can be installed
+with pip using `pip3 install --user beautifulsoup4`.
+
+
 # Description
 This is a simple python script which you can use to download the entire NHANES
 dataset from the CDC website.  The script will load the websites at the URLs
