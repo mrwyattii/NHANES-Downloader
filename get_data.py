@@ -57,7 +57,7 @@ except ImportError:
 
 def conditionalMkdir(directory):
     if not os.path.exists(directory):
-        os.makedir(directory)
+        os.makedirs(directory)
 
 
 def parsePageXPT(html_source):
