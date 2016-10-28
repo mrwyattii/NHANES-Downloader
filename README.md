@@ -3,7 +3,7 @@ Python script to download the entire NHANES dataset from the CDC website.
 Additionally, a script is provided to convert the downloaded file format (XPT)
 to CSV using the Pandas library for Python 3.
 
-# Requrements
+# Requirements
 * Python 3
 * Pandas
 * BeautifulSoup
