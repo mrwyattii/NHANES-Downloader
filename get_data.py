@@ -46,6 +46,7 @@ import os
 import argparse
 import urllib.request
 import re
+import json
 import functools
 from multiprocessing import Pool
 
@@ -68,32 +69,90 @@ def parsePageXPT(html_source):
     return xpt_urls
 
 
+''' Parses a page for 'codebook' div with descriptions of column labels '''
+def parsePageLabels(html_source):
+    # Parse HTML source code with BeautifulSoup library
+    soup = BeautifulSoup(html_source, 'html.parser')
+
+    # Find div element with codebook
+    div = soup.findAll('div', id="CodebookLinks")[0]
+
+    # Get all links and their text in the div
+    labels = [link.string.rstrip() for link in div.findAll('a')]
+
+    # Put labels into library
+    labels = [re.split('( - )', label, 1) for label in labels]
+    labels = {label[0]:label[-1] for label in labels}
+    return labels
+
+
+'''Get year associated with file '''
+def getFileYear(file_url):
+    # Search URL for a year
+    year = re.search('\/(\d+-\d+)\/', file_url)
+
+    # Get value from regular expression match
+    if year:
+        year = year.group(1)
+    else:
+        # If no match, assign year as 'Other'
+        year = 'Other'
+
+    return year
+
+
 ''' Creates directory for file and downloads file from provided URL '''
 def getFile(file_dir, file_url, file_type):
     # Print progress
     print('Getting file: %s' % file_url)
 
-    # Get year associated with file
-    year = re.search('\/(\d+-\d+)\/', file_url)
-    if year:
-        year = year.group(1)
-    else:
-        year = 'Other'
+    # Get data year
+    year = getFileYear(file_url)
 
     # Compile file location
-    file_dir = '%s/%s/%s/' % (file_dir.rstrip('/'), year, file_type)
+    file_dir = os.path.join(file_dir, year, file_type)
 
     # Make directory for file if necessary
     conditionalMkdir(file_dir)
 
     # Get name for file
     file_name = file_url.split('/')[-1]
-    file_loc = file_dir + file_name
+    file_loc = os.path.join(file_dir, file_name)
 
     # Check that file does not already exist
     if not os.path.isfile(file_loc):
         # Download the file and write to local
         urllib.request.urlretrieve(file_url, file_loc)
+
+
+''' Obtains column labels from NHANES website and saves to JSON '''
+def getLabel(file_dir, file_url, file_type):
+    # Get data year
+    year = getFileYear(file_url)
+
+    # Combile file location:
+    file_dir = os.path.join(file_dir, year, file_type)
+
+    # Get name for file
+    file_name = file_url.split('/')[-1].replace('.XPT', '.JSON')
+    file_loc = os.path.join(file_dir, file_name)
+
+    # Modify XPT file_url to load page with labels
+    file_url = file_url.replace('.XPT', '.htm')
+
+    # Check that file does not already exist
+    if not os.path.isfile(file_loc):
+        # Open the website and download source HTML
+        with urllib.request.urlopen(file_url) as page:
+            html_source = page.read()
+
+        # Parse the website for column labels
+        file_labels = parsePageLabels(html_source)
+
+        # Save the file to JSON
+        print('Saving label data: %s' % file_loc)
+        with open(file_loc, 'w') as open_file:
+            json.dump(file_labels, open_file)
 
 
 ''' Reads HTML source from provided URLs, parses HTML for XPT files, and saves files '''
@@ -108,7 +167,7 @@ def parseWebSite(url, output_dir):
     else:
         file_type = 'Other'
 
-    # Open the website and download source html
+    # Open the website and download source HTML
     with urllib.request.urlopen(url) as page:
         html_source = page.read()
 
@@ -119,6 +178,7 @@ def parseWebSite(url, output_dir):
     # Download each file and store locally
     for file_url in file_urls:
         getFile(output_dir, file_url, file_type)
+        getLabel(output_dir, file_url, file_type)
 
 
 def main():
