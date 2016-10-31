@@ -44,6 +44,7 @@
 
 import os
 import pandas as pd
+import json
 import argparse
 import functools
 from multiprocessing import Pool
@@ -51,8 +52,47 @@ from multiprocessing import Pool
 from common import conditionalMkdir
 
 
+def loadConcatColumns(os_walk_paths):
+    # Empty dictionary to hold mapped column names
+    global_map = {}
+
+    # Cycle through walk paths
+    for os_walk_path in os_walk_paths:
+        read_dir, _, f_names = os_walk_path
+        # Filter out non JSON files
+        f_names = [f_name for f_name in f_names if f_name.endswith('.JSON')]
+
+        # Get information for each column header
+        for f_name in f_names:
+            # Load JSON
+            f_path = os.path.join(read_dir, f_name)
+            with open(f_path) as json_file:
+                current_map = json.load(json_file)
+
+            # Add key:val pairs to global_map
+            for key, val in current_map.items():
+                if key.lower() not in global_map:
+                    global_map[key.lower()] = val
+
+    return global_map
+
+
+
+''' Replaces column headers using mapping in JSON file '''
+def replaceColumns(data, columns_map):
+    # Process current column keys to improve matching
+    columns = [val.lower() for val in data.columns]
+
+    # Map current labels to new labels
+    data.columns = [columns_map[val] if val in columns_map else val\
+            for val in columns]
+
+    return data
+
+
+
 ''' Converts XPT files to CSV files '''
-def XPT2CSV(os_walk_path, input_prefix, output_prefix):
+def XPT2CSV(os_walk_path, input_prefix, output_prefix, columns_map):
     read_dir, _, f_names = os_walk_path
     # Filter out non XPT files
     f_names = [f_name for f_name in f_names if f_name.endswith('.XPT')]
@@ -70,6 +110,8 @@ def XPT2CSV(os_walk_path, input_prefix, output_prefix):
 
         # Read XPT (SAS) and write CSV
         data = pd.read_sas(read_path)
+        if columns_map:
+            data = replaceColumns(data, columns_map)
         data.to_csv(write_path, index=False)
 
 
@@ -84,18 +126,29 @@ def main():
     parser.add_argument('-o', '--output_dir', default='./data/csv_data/',\
             type=str, help='Output directory for .XPT data files converted to\
             .CSV files')
+    parser.add_argument('-c', '--columns', action='store_true', help='Boolean\
+            setting for converting column headers to more verbose option.\
+            Requires .JSON file with mapping in same directory as data file')
     args = parser.parse_args()
 
-    # Read in each XPT data file and write out as CSV
-    os_walk_paths = os.walk(args.input_dir)
+    # Get listing of data input directory
+    os_walk_paths = list(os.walk(args.input_dir))
+    # Load column header dictionaries if necessary
+    if args.columns:
+        columns = loadConcatColumns(os_walk_paths)
+    else:
+        columns = False
+
+    # Convert XPT files to CSV
     if args.multithread:
         parallelXPT2CSV = functools.partial(XPT2CSV,\
-                input_prefix=args.input_dir, output_prefix=args.output_dir)
+                input_prefix=args.input_dir, output_prefix=args.output_dir,\
+                columns_map=columns)
         pool = Pool(processes=os.cpu_count())
         pool.map(parallelXPT2CSV, os_walk_paths)
     else:
         for os_walk_path in os_walk_paths:
-            XPT2CSV(os_walk_path, args.input_dir, args.output_dir)
+            XPT2CSV(os_walk_path, args.input_dir, args.output_dir, columns)
 
 
 if __name__ == '__main__':
