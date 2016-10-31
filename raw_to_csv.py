@@ -66,8 +66,13 @@ def loadConcatColumns(os_walk_paths):
         for f_name in f_names:
             # Load JSON
             f_path = os.path.join(read_dir, f_name)
-            with open(f_path) as json_file:
-                current_map = json.load(json_file)
+            try:
+                with open(f_path) as json_file:
+                    current_map = json.load(json_file)
+            # Catch decode errors due to empty JSON files
+            except ValueError:
+                print('JSON decode error: %s' % f_path)
+                continue
 
             # Add key:val pairs to global_map
             for key, val in current_map.items():
