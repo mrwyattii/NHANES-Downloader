@@ -75,7 +75,12 @@ def parsePageLabels(html_source):
     soup = BeautifulSoup(html_source, 'html.parser')
 
     # Find div element with codebook
-    div = soup.findAll('div', id="CodebookLinks")[0]
+    try:
+        div = soup.findAll('div', id="CodebookLinks")[0]
+    except:
+        # If we can't find the div, print
+        print('Error, no CodebookLinks Div')
+        return {}
 
     # Get all links and their text in the div
     labels = [link.string.rstrip() for link in div.findAll('a')]
@@ -103,9 +108,6 @@ def getFileYear(file_url):
 
 ''' Creates directory for file and downloads file from provided URL '''
 def getFile(file_dir, file_url, file_type):
-    # Print progress
-    print('Getting file: %s' % file_url)
-
     # Get data year
     year = getFileYear(file_url)
 
@@ -121,6 +123,7 @@ def getFile(file_dir, file_url, file_type):
 
     # Check that file does not already exist
     if not os.path.isfile(file_loc):
+        print('Getting file: %s' % file_url)
         # Download the file and write to local
         urllib.request.urlretrieve(file_url, file_loc)
 
@@ -146,7 +149,7 @@ def getLabel(file_dir, file_url, file_type):
         with urllib.request.urlopen(file_url) as page:
             html_source = page.read()
 
-        # Parse the website for column labels
+        # Parse the website for column label
         file_labels = parsePageLabels(html_source)
 
         # Save the file to JSON
